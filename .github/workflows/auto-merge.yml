@@ -1,4 +1,5 @@
 name: Auto-Merge Todo Updates
+
 on:
   pull_request:
     types: [opened]
@@ -6,28 +7,40 @@ on:
       - 'data/users/**'
 
 jobs:
-  validate-and-merge:
+  auto-merge:
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
       contents: write
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
 
-      - name: Validate structure
+      - name: Validate encryption format
         run: |
-          # Validate that changed files are valid JSON
-          for file in $(git diff --name-only HEAD^ HEAD | grep '^data/users/'); do
+          # Verify all modified files in data/users have valid encrypted structure
+          git diff --name-only HEAD^ HEAD | grep '^data/users/' | while read file; do
             if [ -f "$file" ]; then
-              jq empty "$file" || exit 1
-              # Additional validation: check required fields exist
-              jq -e '.v and .iv and .ct and .rec' "$file" || exit 1
+              echo "Validating $file"
+              jq -e '
+                .v == 1 and 
+                (.iv | length) > 0 and 
+                (.ct | length) > 0 and 
+                (.rec | length) == 2 and
+                (.rec[0].kid == "user" or .rec[0].kid == "shop") and
+                (.rec[1].kid == "user" or .rec[1].kid == "shop")
+              ' "$file" || { echo "Invalid format: $file"; exit 1; }
             fi
           done
 
-      - name: Auto-merge
+      - name: Auto-merge pull request
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh pr merge ${{ github.event.pull_request.number }} --squash --delete-branch --subject "automated: ${{ github.event.pull_request.title }}"
+          gh pr merge ${{ github.event.pull_request.number }} \
+            --squash \
+            --delete-branch \
+            --subject "automated: sync todos for ${{ github.event.pull_request.head.ref }}"
