@@ -3,233 +3,106 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Secure GitHub Todo</title>
+    <title>GitHub Todo Store</title>
     <style>
-        * { box-sizing: border-box; }
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-            line-height: 1.5;
-            color: #24292f;
-            max-width: 640px;
-            margin: 0 auto;
-            padding: 24px;
-            background: #ffffff;
-        }
-        h1 { 
-            font-size: 24px; 
-            border-bottom: 1px solid #d8dee4;
-            padding-bottom: 16px;
-            margin-bottom: 24px;
-        }
-        .panel {
-            background: #f6f8fa;
-            border: 1px solid #d0d7de;
-            border-radius: 8px;
-            padding: 24px;
-            margin-bottom: 16px;
-        }
+        * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+        body { max-width: 640px; margin: 40px auto; padding: 20px; line-height: 1.5; color: #24292f; }
+        h1 { border-bottom: 3px solid #24292f; padding-bottom: 12px; }
+        .panel { background: #f6f8fa; border: 1px solid #d0d7de; border-radius: 8px; padding: 24px; margin: 20px 0; }
         .panel.hidden { display: none; }
-        button {
-            background: #2ea44f;
-            color: white;
-            border: 1px solid rgba(27,31,36,0.15);
-            border-radius: 6px;
-            padding: 8px 16px;
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
+        button { background: #2ea44f; color: white; border: 1px solid rgba(27,31,36,0.15); border-radius: 6px; padding: 10px 20px; font-size: 14px; font-weight: 500; cursor: pointer; }
         button:hover { background: #2c974b; }
-        button:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-        button.secondary {
-            background: #f6f8fa;
-            color: #24292f;
-            border-color: #d0d7de;
-        }
-        button.secondary:hover { background: #f3f4f6; }
-        input[type="text"] {
-            width: 100%;
-            padding: 8px 12px;
-            font-size: 14px;
-            border: 1px solid #d0d7de;
-            border-radius: 6px;
-            margin-bottom: 12px;
-        }
-        input[type="text"]:focus {
-            outline: none;
-            border-color: #0969da;
-            box-shadow: 0 0 0 3px rgba(9,105,218,0.3);
-        }
-        .code-box {
-            background: #ffffff;
-            border: 2px dashed #d0d7de;
-            border-radius: 6px;
-            padding: 16px;
-            text-align: center;
-            font-family: ui-monospace, SFMono-Regular, monospace;
-            font-size: 32px;
-            font-weight: 600;
-            letter-spacing: 4px;
-            color: #24292f;
-            margin: 16px 0;
-        }
-        .status {
-            font-size: 14px;
-            color: #57606a;
-            margin-top: 12px;
-        }
-        .status.error { color: #cf222e; }
-        .status.success { color: #1a7f37; }
-        .todo-list {
-            border: 1px solid #d0d7de;
-            border-radius: 8px;
-            background: #ffffff;
-            margin: 16px 0;
-        }
-        .todo-item {
-            display: flex;
-            align-items: center;
-            padding: 12px 16px;
-            border-bottom: 1px solid #d0d7de;
-            gap: 12px;
-        }
+        button:disabled { opacity: 0.6; cursor: not-allowed; }
+        button.secondary { background: #f6f8fa; color: #24292f; border-color: #d0d7de; }
+        .code-box { background: #fff; border: 2px dashed #d0d7de; border-radius: 6px; padding: 20px; text-align: center; font-family: ui-monospace, monospace; font-size: 32px; font-weight: 600; letter-spacing: 4px; margin: 16px 0; color: #24292f; }
+        .code-box.pending { font-size: 14px; color: #6e7781; letter-spacing: normal; padding: 40px 20px; }
+        input[type="text"] { width: 100%; padding: 10px; border: 1px solid #d0d7de; border-radius: 6px; margin: 8px 0; font-size: 14px; }
+        .hint { font-size: 13px; color: #57606a; margin-top: 8px; }
+        .status { font-size: 14px; margin-top: 12px; min-height: 20px; }
+        .error { color: #cf222e; }
+        .success { color: #1a7f37; }
+        .todo-list { border: 1px solid #d0d7de; border-radius: 8px; margin: 16px 0; }
+        .todo-item { display: flex; align-items: center; padding: 12px; border-bottom: 1px solid #d0d7de; gap: 12px; }
         .todo-item:last-child { border-bottom: none; }
-        .todo-item input[type="checkbox"] { 
-            width: 16px; 
-            height: 16px; 
-            cursor: pointer;
-        }
-        .todo-item span {
-            flex: 1;
-            font-size: 14px;
-        }
-        .todo-item.done span {
-            text-decoration: line-through;
-            color: #6e7781;
-        }
-        .todo-item button.delete {
-            background: none;
-            border: none;
-            color: #cf222e;
-            font-size: 18px;
-            padding: 0 4px;
-            cursor: pointer;
-            opacity: 0.6;
-        }
-        .todo-item button.delete:hover { opacity: 1; }
-        .header-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 24px;
-        }
-        .user-info {
-            font-size: 12px;
-            color: #6e7781;
-        }
-        .sync-bar {
-            display: flex;
-            gap: 12px;
-            align-items: center;
-            margin-top: 24px;
-            padding-top: 16px;
-            border-top: 1px solid #d0d7de;
-        }
-        .hint {
-            font-size: 12px;
-            color: #6e7781;
-            margin-top: 8px;
-        }
-        a { color: #0969da; text-decoration: none; }
-        a:hover { text-decoration: underline; }
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
+        .todo-item.done span { text-decoration: line-through; color: #6e7781; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
         .polling { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        code { background: #eaeef2; padding: 2px 6px; border-radius: 3px; font-size: 12px; }
     </style>
 </head>
 <body>
 
-<h1>🔐 Secure GitHub Todo</h1>
+<h1>🔐 GitHub Todo Store</h1>
 
 <!-- Step 1: Create Identity -->
 <div id="step-identity" class="panel">
     <h3 style="margin-top: 0;">Welcome</h3>
-    <p>This application stores encrypted todos in GitHub. Generate a cryptographic identity to begin.</p>
-    <button onclick="app.createIdentity()" id="btn-create-id">
-        Generate Identity
-    </button>
-    <div id="identity-status" class="status"></div>
+    <p>Create a secure identity to encrypt your todos. This protects your data so only you and the shop owner can read it.</p>
+    <button onclick="app.createIdentity()" id="btn-create-id">Generate Identity</button>
+    <div id="identity-status" class="hint"></div>
 </div>
 
-<!-- Step 2: Device Flow Auth -->
+<!-- Step 2: Authenticate -->
 <div id="step-auth" class="panel hidden">
     <h3 style="margin-top: 0;">Connect to GitHub</h3>
-    <p>Click below to authenticate with GitHub. You'll enter a code on GitHub.com to grant access.</p>
-    <button onclick="app.startAuth()" class="secondary">
-        <svg height="16" viewBox="0 0 16 16" width="16" fill="currentColor" style="margin-right:4px;">
-            <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path>
-        </svg>
-        Log in with GitHub
-    </button>
+    <p>Log in with GitHub to save your encrypted todos to the repository.</p>
+    <button onclick="app.startAuth()" class="secondary">Log in with GitHub</button>
+    <div class="hint" style="margin-top: 12px;">You'll be shown a code to enter on GitHub.com</div>
 </div>
 
 <!-- Step 3: Device Flow Pending -->
 <div id="step-pending" class="panel hidden">
     <h3 style="margin-top: 0;">Authorization Required</h3>
-    <p>Enter this code on GitHub.com:</p>
-    <div class="code-box" id="user-code">----</div>
-    <button onclick="app.openGitHub()" class="secondary" style="width: 100%; justify-content: center;">
-        Open github.com/login/device
-    </button>
-    <div id="pending-status" class="status polling">Waiting for authorization...</div>
-    <div class="hint">Keep this page open. It will automatically detect when you authorize.</div>
+    <div id="code-display" class="code-box pending">Requesting authorization code...</div>
+    <button onclick="app.openGitHub()" class="secondary" style="width: 100%; margin-bottom: 12px;">Open github.com/login/device</button>
+    <div id="pending-status" class="status polling">Initializing secure authentication...</div>
+    <div class="hint">Keep this page open. It will automatically detect when you authorize on GitHub.</div>
 </div>
 
 <!-- Step 4: Main Application -->
 <div id="step-app" class="hidden">
-    <div class="header-bar">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
         <div>
             <div style="font-weight: 600;">My Todos</div>
-            <div class="user-info" id="user-address">Connected</div>
+            <div style="font-size: 12px; color: #57606a;" id="user-info"></div>
         </div>
         <button onclick="app.logout()" class="secondary" style="font-size: 12px;">Disconnect</button>
     </div>
 
-    <div style="display: flex; gap: 8px;">
-        <input type="text" id="todo-input" placeholder="Add a new todo..." onkeypress="if(event.key==='Enter')app.addTodo()">
-        <button onclick="app.addTodo()" style="white-space: nowrap;">Add</button>
+    <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+        <input type="text" id="todo-input" placeholder="Add a new todo..." onkeypress="if(event.key==='Enter')app.addTodo()" style="flex: 1;">
+        <button onclick="app.addTodo()">Add</button>
     </div>
 
-    <div id="todos-container" class="todo-list">
-        <!-- Todos rendered here -->
-    </div>
+    <div id="todos-container" class="todo-list"></div>
 
-    <div class="sync-bar">
-        <button onclick="app.sync()" id="btn-sync" style="flex: 1;">
-            💾 Save to GitHub
-        </button>
+    <div style="margin-top: 20px; text-align: center;">
+        <button onclick="app.sync()" id="btn-sync" style="width: 100%; background: #24292f;">💾 Save to GitHub</button>
+        <div id="sync-status" class="hint" style="margin-top: 8px;"></div>
     </div>
-    <div id="sync-status" class="status"></div>
-    <div class="hint">Changes are saved as encrypted pull requests and auto-merged.</div>
 </div>
 
 <script>
 /**
- * CONFIGURATION - Replace these values
+ * CONFIGURATION - Replace ALL values below
  */
 const CONFIG = {
-    REPO_OWNER: 'HennyH',        // Your GitHub username
-    REPO_NAME: 'todos',        // Repository name (e.g., 'my-todo-store')
-    OAUTH_CLIENT_ID: 'Ov23li18WS1xOuEI7S4m',  // GitHub OAuth App Client ID
-    SHOP_PUBLIC_KEY: {                  // Shop owner's P-256 public key (JWK format)
+    // Your main data repository (where todos are stored)
+    REPO_OWNER: 'HennyH',
+    REPO_NAME: 'todos',
+
+    // The auth broker repository (separate, isolated repo)
+    AUTH_BROKER_REPO: 'HennyH/todos-auth',
+
+    // PUBLIC TOKEN: Fine-grained PAT with ONLY 'Contents: write' on AUTH_BROKER_REPO
+    // This is safe to expose because it can ONLY trigger workflows in the empty broker repo
+    PUBLIC_AUTH_TOKEN: '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',
+
+    // GitHub OAuth App Client ID (must have Device Flow enabled)
+    OAUTH_CLIENT_ID: 'Ov23li18WS1xOuEI7S4m',
+
+    // Shop owner P-256 public key for dual encryption
+    SHOP_PUBLIC_KEY: {
         kty: 'EC',
         crv: 'P-256',
         x: 'M6JVZzBRi1YUTsC6Zr1jmaJ0h7fJznx5voY6wrxka-E',
@@ -240,246 +113,57 @@ const CONFIG = {
 /**
  * CRYPTO UTILITIES
  */
-const base58 = (bytes) => {
-    const alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
-    let num = BigInt('0x' + Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join(''));
-    let str = '';
-    while (num > 0) {
-        str = alphabet[Number(num % 58n)] + str;
-        num = num / 58n;
-    }
-    for (let b of bytes) if (b === 0) str = '1' + str;
-    return str;
-};
+const b64u = (buf) => btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+const ub64u = (str) => { str = str.replace(/-/g, '+').replace(/_/g, '/'); while (str.length % 4) str += '='; return Uint8Array.from(atob(str), c => c.charCodeAt(0)); };
+const base58 = (bytes) => { const a = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'; let n = BigInt('0x' + Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('')), s = ''; while (n > 0) { s = a[Number(n % 58n)] + s; n /= 58n; } for (let b of bytes) if (b === 0) s = '1' + s; return s; };
 
-const b64u = (buf) => btoa(String.fromCharCode(...new Uint8Array(buf)))
-    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
-const ub64u = (str) => {
-    str = str.replace(/-/g, '+').replace(/_/g, '/');
-    while (str.length % 4) str += '=';
-    return Uint8Array.from(atob(str), c => c.charCodeAt(0));
-};
-
-/**
- * DEVICE FLOW AUTHENTICATION
- * RFC 8628 - OAuth 2.0 Device Authorization Grant
- */
-class DeviceAuth {
-    constructor(clientId) {
-        this.clientId = clientId;
-        this.deviceCode = null;
-        this.interval = 5;
-        this._abort = false;
-    }
-
-    // Step 1: Request device code from GitHub
-    async initiate() {
-        const res = await fetch('https://github.com/login/device/code', {
-            method: 'POST',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/x-www-form-urlencoded'
-            },
-            body: new URLSearchParams({
-                client_id: this.clientId,
-                scope: 'public_repo'  // Use 'repo' for private repositories
-            })
-        });
-
-        if (!res.ok) throw new Error('Failed to initiate device flow');
-
-        const data = await res.json();
-        this.deviceCode = data.device_code;
-        this.interval = data.interval || 5;
-
-        // Persist for page refreshes
-        sessionStorage.setItem('device_code', this.deviceCode);
-        sessionStorage.setItem('device_interval', this.interval);
-        sessionStorage.setItem('device_expires', Date.now() + (data.expires_in * 1000));
-
-        return {
-            userCode: data.user_code,
-            verificationUri: data.verification_uri,
-            expiresIn: data.expires_in
-        };
-    }
-
-    // Step 2: Poll for access token
-    async pollForToken() {
-        const deviceCode = sessionStorage.getItem('device_code') || this.deviceCode;
-        let interval = parseInt(sessionStorage.getItem('device_interval')) || this.interval || 5;
-
-        if (!deviceCode) throw new Error('No device code available');
-
-        while (!this._abort) {
-            await new Promise(r => setTimeout(r, interval * 1000));
-
-            const res = await fetch('https://github.com/login/oauth/access_token', {
-                method: 'POST',
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                },
-                body: new URLSearchParams({
-                    client_id: this.clientId,
-                    device_code: deviceCode,
-                    grant_type: 'urn:ietf:params:oauth:grant-type:device_code'
-                })
-            });
-
-            const data = await res.json();
-
-            if (data.error) {
-                switch(data.error) {
-                    case 'authorization_pending':
-                        continue; // Normal, keep polling
-                    case 'slow_down':
-                        interval += 5;
-                        continue;
-                    case 'expired_token':
-                        throw new Error('Device code expired. Please try again.');
-                    case 'access_denied':
-                        throw new Error('Access denied by user.');
-                    default:
-                        throw new Error(data.error_description || data.error);
-                }
-            }
-
-            if (data.access_token) {
-                sessionStorage.setItem('github_token', data.access_token);
-                sessionStorage.removeItem('device_code'); // Clean up
-                return data.access_token;
-            }
-        }
-
-        throw new Error('Authentication cancelled');
-    }
-
-    abort() { this._abort = true; }
-
-    static clearSession() {
-        sessionStorage.removeItem('github_token');
-        sessionStorage.removeItem('device_code');
-        sessionStorage.removeItem('device_interval');
-    }
-}
-
-/**
- * ECIES ENCRYPTION (Dual Recipient)
- */
 class CryptoManager {
     async generateIdentity() {
-        const keys = await crypto.subtle.generateKey(
-            { name: 'ECDH', namedCurve: 'P-256' },
-            true, ['deriveKey', 'deriveBits']
-        );
-
-        const pub = await crypto.subtle.exportKey('jwk', keys.publicKey);
-        const priv = await crypto.subtle.exportKey('jwk', keys.privateKey);
-        const rawPub = await crypto.subtle.exportKey('raw', keys.publicKey);
-        const hash = await crypto.subtle.digest('SHA-256', rawPub);
-
-        return {
-            privateKey: priv,
-            publicKey: pub,
-            address: base58(new Uint8Array(hash).slice(0, 20))
-        };
+        const k = await crypto.subtle.generateKey({ name: 'ECDH', namedCurve: 'P-256' }, true, ['deriveKey', 'deriveBits']);
+        const pub = await crypto.subtle.exportKey('jwk', k.publicKey);
+        const priv = await crypto.subtle.exportKey('jwk', k.privateKey);
+        const raw = await crypto.subtle.exportKey('raw', k.publicKey);
+        const h = await crypto.subtle.digest('SHA-256', raw);
+        return { privateKey: priv, publicKey: pub, address: base58(new Uint8Array(h).slice(0, 20)) };
     }
 
     async loadIdentity(stored) {
-        const privateKey = await crypto.subtle.importKey(
-            'jwk', stored.privateKey,
-            { name: 'ECDH', namedCurve: 'P-256' },
-            false, ['deriveKey', 'deriveBits']
-        );
-        const publicKey = await crypto.subtle.importKey(
-            'jwk', stored.publicKey,
-            { name: 'ECDH', namedCurve: 'P-256' },
-            true, []
-        );
-        return { privateKey, publicKey, address: stored.address };
+        const priv = await crypto.subtle.importKey('jwk', stored.privateKey, { name: 'ECDH', namedCurve: 'P-256' }, false, ['deriveKey', 'deriveBits']);
+        const pub = await crypto.subtle.importKey('jwk', stored.publicKey, { name: 'ECDH', namedCurve: 'P-256' }, true, []);
+        return { privateKey: priv, publicKey: pub, address: stored.address };
     }
 
     async dualEncrypt(plaintext, userPub, shopPubJwk) {
-        const shopPub = await crypto.subtle.importKey(
-            'jwk', shopPubJwk,
-            { name: 'ECDH', namedCurve: 'P-256' },
-            true, []
-        );
-
-        // Content Encryption Key
-        const cek = await crypto.subtle.generateKey(
-            { name: 'AES-GCM', length: 256 },
-            true, ['encrypt', 'wrapKey']
-        );
-
+        const shopPub = await crypto.subtle.importKey('jwk', shopPubJwk, { name: 'ECDH', namedCurve: 'P-256' }, true, []);
+        const cek = await crypto.subtle.generateKey({ name: 'AES-GCM', length: 256 }, true, ['encrypt', 'wrapKey']);
         const iv = crypto.getRandomValues(new Uint8Array(12));
-        const data = new TextEncoder().encode(JSON.stringify(plaintext));
-        const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, cek, data);
+        const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, cek, new TextEncoder().encode(JSON.stringify(plaintext)));
 
-        // Wrap CEK for each recipient using ECDH
-        const wrapFor = async (recipientPub, kid) => {
-            const ephemeral = await crypto.subtle.generateKey(
-                { name: 'ECDH', namedCurve: 'P-256' },
-                true, ['deriveKey']
-            );
-            const shared = await crypto.subtle.deriveBits(
-                { name: 'ECDH', public: recipientPub },
-                ephemeral.privateKey, 256
-            );
-            const wrapKey = await crypto.subtle.importKey(
-                'raw', shared,
-                { name: 'AES-KW' },
-                false, ['wrapKey']
-            );
-            const wrapped = await crypto.subtle.wrapKey('raw', cek, wrapKey, 'AES-KW');
-            const epkRaw = await crypto.subtle.exportKey('raw', ephemeral.publicKey);
-            return { kid, epk: b64u(epkRaw), wk: b64u(wrapped) };
+        const wrap = async (rp, kid) => {
+            const ep = await crypto.subtle.generateKey({ name: 'ECDH', namedCurve: 'P-256' }, true, ['deriveKey']);
+            const sb = await crypto.subtle.deriveBits({ name: 'ECDH', public: rp }, ep.privateKey, 256);
+            const wk = await crypto.subtle.importKey('raw', sb, { name: 'AES-KW' }, false, ['wrapKey']);
+            const w = await crypto.subtle.wrapKey('raw', cek, wk, 'AES-KW');
+            const er = await crypto.subtle.exportKey('raw', ep.publicKey);
+            return { kid, epk: b64u(er), wk: b64u(w) };
         };
 
-        const rec = await Promise.all([
-            wrapFor(userPub, 'user'),
-            wrapFor(shopPub, 'shop')
-        ]);
-
+        const rec = await Promise.all([wrap(userPub, 'user'), wrap(shopPub, 'shop')]);
         return { v: 1, iv: b64u(iv), ct: b64u(ct), rec, ts: Date.now() };
     }
 
     async decrypt(enc, privateKey, kid = 'user') {
-        const rec = enc.rec.find(r => r.kid === kid);
-        if (!rec) throw new Error('No key for recipient: ' + kid);
-
-        const ephemeralPub = await crypto.subtle.importKey(
-            'raw', ub64u(rec.epk),
-            { name: 'ECDH', namedCurve: 'P-256' },
-            false, []
-        );
-        const shared = await crypto.subtle.deriveBits(
-            { name: 'ECDH', public: ephemeralPub },
-            privateKey, 256
-        );
-        const wrapKey = await crypto.subtle.importKey(
-            'raw', shared,
-            { name: 'AES-KW' },
-            false, ['unwrapKey']
-        );
-        const cek = await crypto.subtle.unwrapKey(
-            'raw', ub64u(rec.wk),
-            wrapKey, 'AES-KW',
-            { name: 'AES-GCM', length: 256 },
-            false, ['decrypt']
-        );
-        const pt = await crypto.subtle.decrypt(
-            { name: 'AES-GCM', iv: ub64u(enc.iv) },
-            cek, ub64u(enc.ct)
-        );
+        const r = enc.rec.find(x => x.kid === kid);
+        if (!r) throw new Error('No key');
+        const ep = await crypto.subtle.importKey('raw', ub64u(r.epk), { name: 'ECDH', namedCurve: 'P-256' }, false, []);
+        const sb = await crypto.subtle.deriveBits({ name: 'ECDH', public: ep }, privateKey, 256);
+        const wk = await crypto.subtle.importKey('raw', sb, { name: 'AES-KW' }, false, ['unwrapKey']);
+        const cek = await crypto.subtle.unwrapKey('raw', ub64u(r.wk), wk, 'AES-KW', { name: 'AES-GCM', length: 256 }, false, ['decrypt']);
+        const pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: ub64u(enc.iv) }, cek, ub64u(enc.ct));
         return JSON.parse(new TextDecoder().decode(pt));
     }
 }
 
-/**
- * GITHUB DATA LAYER
- */
 class GitHubStore {
     constructor(token, identity) {
         this.token = token;
@@ -489,124 +173,65 @@ class GitHubStore {
     }
 
     async fetchTodos() {
-        const path = `data/users/${this.identity.address}/todos.json`;
+        const p = `data/users/${this.identity.address}/todos.json`;
         try {
-            const res = await fetch(`${this.raw}/${path}`);
-            if (res.status === 404) return [];
-            const enc = await res.json();
-            return await new CryptoManager().decrypt(enc, this.identity.privateKey);
-        } catch (e) {
-            console.error('Fetch error:', e);
-            return [];
-        }
+            const r = await fetch(`${this.raw}/${p}`);
+            if (r.status === 404) return [];
+            const e = await r.json();
+            return await new CryptoManager().decrypt(e, this.identity.privateKey);
+        } catch (e) { return []; }
     }
 
     async saveTodos(todos) {
         const cm = new CryptoManager();
-        const userPub = await crypto.subtle.importKey(
-            'jwk', JSON.parse(localStorage.getItem('todo_identity')).publicKey,
-            { name: 'ECDH', namedCurve: 'P-256' }, true, []
-        );
-        const enc = await cm.dualEncrypt(todos, userPub, CONFIG.SHOP_PUBLIC_KEY);
-        const content = btoa(JSON.stringify(enc, null, 2));
-        const path = `data/users/${this.identity.address}/todos.json`;
-        const branch = `update-${Date.now()}`;
+        const up = await crypto.subtle.importKey('jwk', JSON.parse(localStorage.getItem('todo_identity')).publicKey, { name: 'ECDH', namedCurve: 'P-256' }, true, []);
+        const e = await cm.dualEncrypt(todos, up, CONFIG.SHOP_PUBLIC_KEY);
+        const content = btoa(JSON.stringify(e, null, 2));
+        const p = `data/users/${this.identity.address}/todos.json`;
+        const b = `todo-${Date.now()}`;
 
-        // Get base commit
-        const ref = await fetch(`${this.api}/repos/${CONFIG.REPO_OWNER}/${CONFIG.REPO_NAME}/git/ref/heads/main`, {
-            headers: { 'Authorization': `token ${this.token}`, 'Accept': 'application/vnd.github.v3+json' }
-        });
-        const baseSha = (await ref.json()).object.sha;
+        const ref = await fetch(`${this.api}/repos/${CONFIG.REPO_OWNER}/${CONFIG.REPO_NAME}/git/ref/heads/main`, { headers: { 'Authorization': `token ${this.token}`, 'Accept': 'application/vnd.github.v3+json' } });
+        const base = (await ref.json()).object.sha;
 
-        // Create branch
-        await fetch(`${this.api}/repos/${CONFIG.REPO_OWNER}/${CONFIG.REPO_NAME}/git/refs`, {
-            method: 'POST',
-            headers: { 'Authorization': `token ${this.token}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ ref: `refs/heads/${branch}`, sha: baseSha })
-        });
+        await fetch(`${this.api}/repos/${CONFIG.REPO_OWNER}/${CONFIG.REPO_NAME}/git/refs`, { method: 'POST', headers: { 'Authorization': `token ${this.token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ ref: `refs/heads/${b}`, sha: base }) });
 
-        // Check for existing file
-        let existingSha;
-        try {
-            const check = await fetch(`${this.api}/repos/${CONFIG.REPO_OWNER}/${CONFIG.REPO_NAME}/contents/${path}?ref=main`, {
-                headers: { 'Authorization': `token ${this.token}` }
-            });
-            if (check.ok) existingSha = (await check.json()).sha;
-        } catch (e) {}
+        let es;
+        try { const c = await fetch(`${this.api}/repos/${CONFIG.REPO_OWNER}/${CONFIG.REPO_NAME}/contents/${p}?ref=main`, { headers: { 'Authorization': `token ${this.token}` } }); if (c.ok) es = (await c.json()).sha; } catch (e) {}
 
-        // Commit file
-        await fetch(`${this.api}/repos/${CONFIG.REPO_OWNER}/${CONFIG.REPO_NAME}/contents/${path}`, {
-            method: 'PUT',
-            headers: { 'Authorization': `token ${this.token}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                message: `Update todos for ${this.identity.address}`,
-                content: content,
-                branch: branch,
-                ...(existingSha && { sha: existingSha })
-            })
-        });
+        await fetch(`${this.api}/repos/${CONFIG.REPO_OWNER}/${CONFIG.REPO_NAME}/contents/${p}`, { method: 'PUT', headers: { 'Authorization': `token ${this.token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ message: `Update ${this.identity.address}`, content: content, branch: b, ...(es && { sha: es }) }) });
 
-        // Create PR
-        const pr = await fetch(`${this.api}/repos/${CONFIG.REPO_OWNER}/${CONFIG.REPO_NAME}/pulls`, {
-            method: 'POST',
-            headers: { 'Authorization': `token ${this.token}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                title: `Todo sync: ${this.identity.address}`,
-                head: branch,
-                base: 'main',
-                body: 'Automated encrypted todo synchronization'
-            })
-        });
-
-        const prData = await pr.json();
-        return prData.html_url;
+        const pr = await fetch(`${this.api}/repos/${CONFIG.REPO_OWNER}/${CONFIG.REPO_NAME}/pulls`, { method: 'POST', headers: { 'Authorization': `token ${this.token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ title: `Todos: ${this.identity.address}`, head: b, base: 'main', body: 'Automated sync' }) });
+        return (await pr.json()).html_url;
     }
 }
 
-/**
- * APPLICATION CONTROLLER
- */
 class App {
     constructor() {
-        this.auth = new DeviceAuth(CONFIG.OAUTH_CLIENT_ID);
-        this.crypto = new CryptoManager();
-        this.store = null;
+        this.cm = new CryptoManager();
         this.identity = null;
+        this.store = null;
         this.todos = [];
+        this.pollAbort = false;
     }
 
     async init() {
-        // Check for existing identity
         const savedId = localStorage.getItem('todo_identity');
+        const savedToken = sessionStorage.getItem('github_token');
+
         if (!savedId) {
             this.show('step-identity');
-            return;
+        } else {
+            this.identity = await this.cm.loadIdentity(JSON.parse(savedId));
+            if (savedToken) {
+                await this.activate(savedToken);
+            } else {
+                this.show('step-auth');
+            }
         }
-
-        this.identity = await this.crypto.loadIdentity(JSON.parse(savedId));
-
-        // Check for existing token
-        const token = sessionStorage.getItem('github_token');
-        if (token) {
-            await this.activateStore(token);
-            return;
-        }
-
-        // Check if we're in the middle of device flow
-        const deviceCode = sessionStorage.getItem('device_code');
-        if (deviceCode && Date.now() < parseInt(sessionStorage.getItem('device_expires'))) {
-            this.show('step-pending');
-            this.resumeAuth();
-            return;
-        }
-
-        this.show('step-auth');
     }
 
     show(id) {
-        ['step-identity', 'step-auth', 'step-pending', 'step-app'].forEach(s => {
-            document.getElementById(s).classList.add('hidden');
-        });
+        ['step-identity', 'step-auth', 'step-pending', 'step-app'].forEach(s => document.getElementById(s).classList.add('hidden'));
         document.getElementById(id).classList.remove('hidden');
     }
 
@@ -614,14 +239,11 @@ class App {
         const btn = document.getElementById('btn-create-id');
         btn.disabled = true;
         btn.textContent = 'Generating...';
-
         try {
-            const id = await this.crypto.generateIdentity();
+            const id = await this.cm.generateIdentity();
             localStorage.setItem('todo_identity', JSON.stringify(id));
-            this.identity = await this.crypto.loadIdentity(id);
-
-            document.getElementById('identity-status').innerHTML = 
-                `✓ Created identity: <code>${id.address}</code>`;
+            this.identity = await this.cm.loadIdentity(id);
+            document.getElementById('identity-status').innerHTML = `<span class="success">✓ Created secure identity: <code>${id.address.substring(0, 16)}...</code></span>`;
             setTimeout(() => this.show('step-auth'), 1000);
         } catch (e) {
             document.getElementById('identity-status').textContent = 'Error: ' + e.message;
@@ -630,14 +252,41 @@ class App {
     }
 
     async startAuth() {
+        // Generate correlation ID and symmetric key for this session
+        const corr = Array.from(crypto.getRandomValues(new Uint8Array(16))).map(b => b.toString(16).padStart(2,'0')).join('');
+        const key = crypto.getRandomValues(new Uint8Array(32));
+
+        sessionStorage.setItem('auth_corr', corr);
+        sessionStorage.setItem('auth_key', b64u(key));
+
+        // Trigger the auth broker workflow (server-side Device Flow)
         try {
-            const { userCode, verificationUri } = await this.auth.initiate();
-            document.getElementById('user-code').textContent = userCode;
+            const res = await fetch(`https://api.github.com/repos/${CONFIG.AUTH_BROKER_REPO}/dispatches`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `token ${CONFIG.PUBLIC_AUTH_TOKEN}`,
+                    'Accept': 'application/vnd.github.v3+json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    event_type: 'device_auth_init',
+                    client_payload: {
+                        correlation_id: corr,
+                        symmetric_key: b64u(key),
+                        client_id: CONFIG.OAUTH_CLIENT_ID
+                    }
+                })
+            });
+
+            if (!res.ok && res.status !== 204) {
+                throw new Error('Failed to trigger authentication broker');
+            }
+
             this.show('step-pending');
-            this.openGitHub();
-            this.resumeAuth();
+            this.pollForAuth(corr);
+
         } catch (e) {
-            alert('Authentication error: ' + e.message);
+            alert('Authentication initiation failed: ' + e.message);
         }
     }
 
@@ -645,94 +294,172 @@ class App {
         window.open('https://github.com/login/device', '_blank');
     }
 
-    async resumeAuth() {
-        try {
-            const token = await this.auth.pollForToken();
-            await this.activateStore(token);
-        } catch (e) {
-            document.getElementById('pending-status').textContent = 'Error: ' + e.message;
-            document.getElementById('pending-status').className = 'status error';
+    /**
+     * Polls the data repository for authentication status
+     * Phase 1: Wait for user_code to display to user
+     * Phase 2: Wait for encrypted_token after user authorizes
+     */
+    async pollForAuth(corr) {
+        const codeBox = document.getElementById('code-display');
+        const status = document.getElementById('pending-status');
+        const symKey = ub64u(sessionStorage.getItem('auth_key'));
+
+        let userCodeShown = false;
+        let pollCount = 0;
+        const maxPolls = 450; // 15 minutes (2s * 450)
+
+        for (let i = 0; i < maxPolls; i++) {
+            if (this.pollAbort) return;
+
+            await new Promise(r => setTimeout(r, 2000));
+            pollCount++;
+
+            try {
+                // Poll the data repo (main repo) for auth file
+                const res = await fetch(`https://raw.githubusercontent.com/${CONFIG.REPO_OWNER}/${CONFIG.REPO_NAME}/main/.auth/${corr}.json`);
+
+                if (res.status !== 200) {
+                    // File doesn't exist yet, keep polling
+                    continue;
+                }
+
+                const data = await res.json();
+
+                // Phase 1: Got user_code, display it
+                if (data.user_code && !userCodeShown && !data.encrypted_token) {
+                    codeBox.textContent = data.user_code;
+                    codeBox.classList.remove('pending');
+                    status.textContent = 'Enter this code on GitHub.com, then wait...';
+                    status.className = 'status polling';
+                    userCodeShown = true;
+
+                    // Auto-open GitHub after showing code
+                    if (pollCount === 1 || pollCount % 10 === 0) {
+                        this.openGitHub();
+                    }
+                }
+
+                // Phase 2: Got encrypted_token, decrypt and activate
+                if (data.encrypted_token) {
+                    status.textContent = 'Authorization complete! Decrypting session...';
+                    status.className = 'status success';
+
+                    try {
+                        // Decrypt token using symmetric key
+                        const aesKey = await crypto.subtle.importKey(
+                            'raw', symKey,
+                            { name: 'AES-GCM', length: 256 },
+                            false, ['decrypt']
+                        );
+
+                        const ctBytes = ub64u(data.encrypted_token.ct);
+                        const tagBytes = ub64u(data.encrypted_token.tag);
+                        const ivBytes = ub64u(data.encrypted_token.iv);
+
+                        // Append tag to ciphertext for AES-GCM decryption
+                        const fullCt = new Uint8Array(ctBytes.length + tagBytes.length);
+                        fullCt.set(ctBytes);
+                        fullCt.set(tagBytes, ctBytes.length);
+
+                        const pt = await crypto.subtle.decrypt(
+                            { name: 'AES-GCM', iv: ivBytes, tagLength: 128 },
+                            aesKey,
+                            fullCt
+                        );
+
+                        const token = new TextDecoder().decode(pt);
+
+                        // Store and activate
+                        sessionStorage.setItem('github_token', token);
+                        await this.activate(token);
+                        return;
+
+                    } catch (decryptErr) {
+                        console.error('Decryption failed:', decryptErr);
+                        status.textContent = 'Error decrypting session. Please try again.';
+                        status.className = 'status error';
+                        return;
+                    }
+                }
+
+                // Handle errors
+                if (data.error) {
+                    status.textContent = 'Error: ' + data.error;
+                    status.className = 'status error';
+                    return;
+                }
+
+            } catch (e) {
+                // Network error, continue polling
+                console.error('Poll error:', e);
+            }
         }
+
+        // Timeout
+        status.textContent = 'Authentication timed out. Please try again.';
+        status.className = 'status error';
+        codeBox.textContent = 'TIMEOUT';
     }
 
-    async activateStore(token) {
+    async activate(token) {
         this.store = new GitHubStore(token, this.identity);
-        document.getElementById('user-address').textContent = 
-            `ID: ${this.identity.address.substring(0, 16)}... · Path: data/users/${this.identity.address}/`;
+        document.getElementById('user-info').innerHTML = `ID: <code>${this.identity.address.substring(0, 16)}...</code> · Path: <code>data/users/${this.identity.address}/</code>`;
         this.show('step-app');
         await this.loadTodos();
     }
 
     async loadTodos() {
-        document.getElementById('todos-container').innerHTML = '<div style="padding: 20px; text-align: center; color: #6e7781;">Loading...</div>';
+        document.getElementById('todos-container').innerHTML = '<div style="padding: 20px; text-align: center; color: #6e7781;">Loading encrypted data...</div>';
         this.todos = await this.store.fetchTodos();
-        this.renderTodos();
+        this.render();
     }
 
-    renderTodos() {
-        const container = document.getElementById('todos-container');
-        if (this.todos.length === 0) {
-            container.innerHTML = '<div style="padding: 40px; text-align: center; color: #6e7781;">No todos yet. Add one above!</div>';
-            return;
-        }
-
-        container.innerHTML = this.todos.map((t, i) => `
+    render() {
+        const c = document.getElementById('todos-container');
+        if (!this.todos.length) { c.innerHTML = '<div style="padding: 40px; text-align: center; color: #6e7781;">No todos yet. Add one above!</div>'; return; }
+        c.innerHTML = this.todos.map((t, i) => `
             <div class="todo-item ${t.done ? 'done' : ''}">
                 <input type="checkbox" ${t.done ? 'checked' : ''} onchange="app.toggle(${i})">
-                <span>${this.escape(t.text)}</span>
-                <button class="delete" onclick="app.delete(${i})">×</button>
+                <span style="flex: 1;">${t.text.replace(/</g, '&lt;')}</span>
+                <button onclick="app.delete(${i})" style="background: none; border: none; color: #cf222e; cursor: pointer; font-size: 18px;">×</button>
             </div>
         `).join('');
     }
 
-    escape(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
-
     addTodo() {
-        const input = document.getElementById('todo-input');
-        const text = input.value.trim();
-        if (!text) return;
-        this.todos.push({ text, done: false, created: Date.now() });
-        input.value = '';
-        this.renderTodos();
-        document.getElementById('sync-status').textContent = 'Unsaved changes';
+        const inp = document.getElementById('todo-input');
+        const t = inp.value.trim();
+        if (!t) return;
+        this.todos.push({ text: t, done: false, created: Date.now() });
+        inp.value = '';
+        this.render();
+        document.getElementById('sync-status').textContent = 'Unsaved changes - click Save to commit';
     }
 
-    toggle(i) {
-        this.todos[i].done = !this.todos[i].done;
-        this.renderTodos();
-        document.getElementById('sync-status').textContent = 'Unsaved changes';
-    }
-
-    delete(i) {
-        this.todos.splice(i, 1);
-        this.renderTodos();
-        document.getElementById('sync-status').textContent = 'Unsaved changes';
-    }
+    toggle(i) { this.todos[i].done = !this.todos[i].done; this.render(); document.getElementById('sync-status').textContent = 'Unsaved changes'; }
+    delete(i) { this.todos.splice(i, 1); this.render(); document.getElementById('sync-status').textContent = 'Unsaved changes'; }
 
     async sync() {
         const btn = document.getElementById('btn-sync');
-        const status = document.getElementById('sync-status');
-
+        const st = document.getElementById('sync-status');
         btn.disabled = true;
-        status.textContent = 'Encrypting and creating PR...';
+        st.textContent = 'Encrypting and creating pull request...';
 
         try {
             const url = await this.store.saveTodos(this.todos);
-            status.innerHTML = `✓ Saved! <a href="${url}" target="_blank">View PR</a> (auto-merges shortly)`;
+            st.innerHTML = `<span class="success">✓ Saved!</span> <a href="${url}" target="_blank">View PR</a> (auto-merges in ~30 seconds)`;
         } catch (e) {
-            status.textContent = 'Error: ' + e.message;
-            status.className = 'status error';
+            st.innerHTML = `<span class="error">Error: ${e.message}</span>`;
         } finally {
             btn.disabled = false;
         }
     }
 
     logout() {
-        DeviceAuth.clearSession();
+        this.pollAbort = true;
+        sessionStorage.removeItem('github_token');
+        sessionStorage.removeItem('auth_corr');
+        sessionStorage.removeItem('auth_key');
         location.reload();
     }
 }

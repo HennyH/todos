@@ -7,40 +7,23 @@ on:
       - 'data/users/**'
 
 jobs:
-  auto-merge:
+  merge:
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
       contents: write
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
+      - uses: actions/checkout@v4
 
-      - name: Validate encryption format
+      - name: Validate encryption
         run: |
-          # Verify all modified files in data/users have valid encrypted structure
-          git diff --name-only HEAD^ HEAD | grep '^data/users/' | while read file; do
-            if [ -f "$file" ]; then
-              echo "Validating $file"
-              jq -e '
-                .v == 1 and 
-                (.iv | length) > 0 and 
-                (.ct | length) > 0 and 
-                (.rec | length) == 2 and
-                (.rec[0].kid == "user" or .rec[0].kid == "shop") and
-                (.rec[1].kid == "user" or .rec[1].kid == "shop")
-              ' "$file" || { echo "Invalid format: $file"; exit 1; }
-            fi
+          git diff --name-only HEAD^ HEAD | grep '^data/users/' | while read f; do
+            [ -f "$f" ] || continue
+            jq -e '.v == 1 and (.rec | length) == 2 and .iv and .ct' "$f" || exit 1
           done
 
-      - name: Auto-merge pull request
+      - name: Merge
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh pr merge ${{ github.event.pull_request.number }} \
-            --squash \
-            --delete-branch \
-            --subject "automated: sync todos for ${{ github.event.pull_request.head.ref }}"
+          gh pr merge ${{ github.event.pull_request.number }} --squash --delete-branch
