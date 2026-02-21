@@ -15,14 +15,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Validate encryption
+      - name: Validate encryption format
         run: |
           git diff --name-only HEAD^ HEAD | grep '^data/users/' | while read f; do
             [ -f "$f" ] || continue
             jq -e '.v == 1 and (.rec | length) == 2 and .iv and .ct' "$f" || exit 1
           done
 
-      - name: Merge
+      - name: Auto-merge
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
