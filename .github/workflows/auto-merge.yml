@@ -1,0 +1,33 @@
+name: Auto-Merge Todo Updates
+on:
+  pull_request:
+    types: [opened]
+    paths:
+      - 'data/users/**'
+
+jobs:
+  validate-and-merge:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate structure
+        run: |
+          # Validate that changed files are valid JSON
+          for file in $(git diff --name-only HEAD^ HEAD | grep '^data/users/'); do
+            if [ -f "$file" ]; then
+              jq empty "$file" || exit 1
+              # Additional validation: check required fields exist
+              jq -e '.v and .iv and .ct and .rec' "$file" || exit 1
+            fi
+          done
+
+      - name: Auto-merge
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr merge ${{ github.event.pull_request.number }} --squash --delete-branch --subject "automated: ${{ github.event.pull_request.title }}"
